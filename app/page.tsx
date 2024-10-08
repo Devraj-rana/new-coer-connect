@@ -2,6 +2,8 @@ import Feed from "@/components/Feed";
 import News from "@/components/News";
 import Sidebar from "@/components/Sidebar";
 import { currentUser } from "@clerk/nextjs/server";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
  
 export default async function Home() {
@@ -17,6 +19,7 @@ export default async function Home() {
           {/* News  */}
           <News/>
       </div>
+      <ToastContainer />
      </div>
   );
 }

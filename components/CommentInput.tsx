@@ -5,19 +5,20 @@ import { useUser } from "@clerk/nextjs";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { createCommentAction } from "@/lib/serveractions";
+import { toast } from "react-toastify";
 
 const CommentInput = ({ postId }: { postId: string }) => {
   const { user } = useUser();
   const commentActionHandler = async (formData: FormData) => {
     try {
       if (!user) {
-        alert("Please Login first");
+        toast.error("Please Login First");
         return;
       }
       await createCommentAction(postId, formData);
     } catch (error) {
       console.error(error);
-      throw new Error("An error occurred");
+      toast.error("Something went wrong");
     }
   };
   return (
