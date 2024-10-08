@@ -15,7 +15,7 @@ import Image from "next/image"
 import { createPostAction } from "@/lib/serveractions"
 import { toast } from "sonner"
 
-export function PostDialog({ setOpen, open, src }: { setOpen: any, open: boolean, src: string }) {
+export function PostDialog({ setOpen, open, src,fullName }: { setOpen: any, open: boolean, src: string,fullName:string }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [selectedFile, setSelectedFile] = useState<string>("");
     const [inputText, setInputText] = useState<string>("");
@@ -49,7 +49,7 @@ export function PostDialog({ setOpen, open, src }: { setOpen: any, open: boolean
                     <DialogTitle className="flex gap-2">
                         <ProfilePhoto src={src} />
                         <div>
-                            <h1>Full Name</h1>
+                            <h1>{fullName}</h1>
                             <p className="text-xs">Post to anyone</p>
                         </div>
                     </DialogTitle>
