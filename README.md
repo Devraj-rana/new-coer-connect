@@ -23,9 +23,6 @@ This repository hosts the source code for a LinkedIn clone built with Next.js, T
 ![Post](https://i.ibb.co/9n5WZVC/linkedin-clone-2.png)
 - Post Popup
 
-![Setting](https://i.ibb.co/t2LrQ8p/food-cart.png)
-- Cart Page
-
 ![Profile](https://i.ibb.co/rMFpZkV/linkedin-clone-3.png)
 - Profile Section
 
@@ -50,7 +47,7 @@ Install dependencies
 Setup Environment Vaiables
 
 ```Make .env file in "root" folder and store environment Variables
-  MONGO_URI=mongodb+srv://iamuhammadshan:C3FeOfXGZlv8HIlb@cluster0.dl9pw.mongodb.net/Linkedin-Clone?retryWrites=true&w=majority&appName=Cluster0
+  MONGO_URI=YOUR-MONGO_URL
   CLOUD_NAME = YOUR-CLOUDINARY-NAME
   API_KEY = YOUR-CLOUDINARY-API-KEY
   API_SECRET = YOUR-CLOUDINARY-API-SECRET
