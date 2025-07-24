@@ -77,7 +77,7 @@ const newsItems: NAVITEMS[] = [
 
 const News = () => {
   return (
-    <div className="hidden md:block w-[25%] bg-white h-fit rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white h-fit rounded-lg shadow-md overflow-hidden">
       <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <h1 className="font-medium flex items-center gap-2">
           <TrendingUp size={18} />

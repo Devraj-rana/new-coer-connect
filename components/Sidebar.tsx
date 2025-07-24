@@ -1,96 +1,58 @@
-// import Image from "next/image";
-// import React from "react";
-// import ProfilePhoto from "./shared/ProfilePhoto";
-// import { getAllPosts } from "@/lib/serveractions";
-
-// const Sidebar = async ({ user }: { user: any }) => {
-//   const posts = await getAllPosts();
-//   return (
-//     <div className="hidden md:block w-[20%] h-fit border bordergray-300 bg-white rounded-lg">
-//       <div className="flex relative flex-col items-center">
-//         <div className="w-full h-16 overflow-hidden">
-//           {user && (
-//             <Image
-//               src={"/banner.jpg"}
-//               alt="Banner"
-//               width={200}
-//               height={200}
-//               className="w-full h-full rounded-t"
-//             />
-//           )}
-//         </div>
-//         <div className="my-1 absolute top-10 left-[40%]">
-//           <ProfilePhoto src={user ? user?.imageUrl! : "/banner.jpg"} />
-//         </div>
-//         <div className="border-b border-b-gray-300">
-//           <div className="p-2 mt-5 text-center">
-//             <h1 className="font-bold hover:underline cursor-pointer">
-//               {user
-//                 ? `${user?.firstName} ${user?.lastName}`
-//                 : "Full name"}
-//             </h1>
-//             <p className="text-xs">@{user?.username || "username"}</p>
-//           </div>
-//         </div>
-//       </div>
-//       <div className="text-xs">
-//         <div className="w-full flex justify-between items-center px-3 py-2 hover:bg-gray-200 cursor-pointer">
-//           <p>Post Impression</p>
-//           <p className="text-blue-500 font-bold">88</p>
-//         </div>
-//         <div className="w-full flex justify-between items-center px-3 py-2 hover:bg-gray-200 cursor-pointer">
-//           <p>Posts</p>
-//           <p className="text-blue-500 font-bold">{posts?.length}</p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
 import Image from "next/image";
 import React from "react";
 import ProfilePhoto from "./shared/ProfilePhoto";
-import { getAllPosts } from "@/lib/serveractions";
+import { User } from "@clerk/nextjs/server";
 
-const Sidebar = async ({ user }: { user: any }) => {
-  const posts = await getAllPosts();
+interface SidebarProps {
+  user: User | null;
+}
+
+const Sidebar = ({ user }: SidebarProps) => {
+  const userFullName = user ? `${user.firstName} ${user.lastName}` : "Guest User";
+  const username = user?.username || "guest";
+
   return (
-    <div className="hidden md:block w-[20%] h-fit bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="flex relative flex-col items-center">
-        <div className="w-full h-20 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Profile Section */}
+      <div className="relative">
+        {/* Banner */}
+        <div className="w-full h-20 bg-gradient-to-r from-blue-600 to-indigo-800">
           {user && (
             <Image
-              src={"/banner.jpg"}
-              alt="Banner"
-              width={200}
-              height={200}
+              src="/banner.jpg"
+              alt="Profile Banner"
+              width={300}
+              height={80}
               className="w-full h-full object-cover"
             />
           )}
         </div>
-        <div className="absolute top-12 left-[40%]">
-          <ProfilePhoto src={user ? user?.imageUrl! : "/banner.jpg"} />
-        </div>
-        <div className="border-b border-b-gray-200 w-full">
-          <div className="p-4 mt-5 text-center">
-            <h1 className="font-bold text-blue-600 hover:underline cursor-pointer transition-colors duration-200">
-              {user ? `${user?.firstName} ${user?.lastName}` : "Full name"}
-            </h1>
-            <p className="text-xs text-gray-600">
-              @{user?.username || "username"}
-            </p>
+        
+        {/* Profile Photo */}
+        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+          <div className="bg-white p-1 rounded-full">
+            <ProfilePhoto src={user?.imageUrl || "/default-avator.png"} />
           </div>
         </div>
       </div>
-      <div className="text-sm">
-        <div className="w-full flex justify-between items-center px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors duration-200">
-          <p className="font-medium">Post Impression</p>
-          <p className="text-blue-600 font-bold">88</p>
+
+      {/* User Info */}
+      <div className="pt-8 pb-4 px-4 text-center border-b border-gray-200">
+        <h2 className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
+          {userFullName}
+        </h2>
+        <p className="text-sm text-gray-500">@{username}</p>
+      </div>
+
+      {/* Stats */}
+      <div className="p-4 space-y-1">
+        <div className="flex justify-between items-center py-2 px-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+          <span className="text-sm text-gray-600">Post Impressions</span>
+          <span className="text-sm font-semibold text-blue-600">88</span>
         </div>
-        <div className="w-full flex justify-between items-center px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors duration-200">
-          <p className="font-medium">Posts</p>
-          <p className="text-blue-600 font-bold">{posts?.length}</p>
+        <div className="flex justify-between items-center py-2 px-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+          <span className="text-sm text-gray-600">Total Posts</span>
+          <span className="text-sm font-semibold text-blue-600">12</span>
         </div>
       </div>
     </div>

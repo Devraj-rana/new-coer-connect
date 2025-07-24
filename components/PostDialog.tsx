@@ -12,8 +12,7 @@ import { Images } from "lucide-react";
 import { useRef, useState } from "react";
 import { readFileAsDataUrl } from "@/lib/utils";
 import Image from "next/image";
-import { createPostAction } from "@/lib/serveractions";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 export function PostDialog({
   setOpen,
@@ -41,17 +40,34 @@ export function PostDialog({
       setSelectedFile(dataUrl);
     }
   };
+
   const postActionHandler = async (formData: FormData) => {
     const inputText = formData.get("inputText") as string;
+    
+    if (!inputText.trim()) {
+      toast.error("Please write something to post!");
+      return;
+    }
+
     try {
-      await createPostAction(inputText, selectedFile);
-      toast.success("Post Created Successfully");
+      // Mock post creation - in a real app, this would save to database
+      console.log("Creating post:", {
+        content: inputText,
+        image: selectedFile,
+        author: fullName,
+        timestamp: new Date()
+      });
+      
+      toast.success("Post created successfully! (This is a demo - posts are not saved to database)");
+      
+      // Reset form
+      setInputText("");
+      setSelectedFile("");
+      setOpen(false);
     } catch (error) {
       console.log("error occurred", error);
-      toast.error("Something went Wrong");
+      toast.error("Something went wrong");
     }
-    setInputText("");
-    setOpen(false);
   };
 
   return (

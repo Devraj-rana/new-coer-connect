@@ -1,18 +1,21 @@
-import React from 'react'
-import PostInput from './PostInput'
-import Posts from './Posts'
-import { getAllPosts } from '@/lib/serveractions';
+import React from 'react';
+import PostInput from './PostInput';
+import Posts from './Posts';
+import { User } from '@clerk/nextjs/server';
 
-const Feed = async ({user}:{user:any}) => {
-    const userData = JSON.parse(JSON.stringify(user));
-    const posts = await getAllPosts();
-    
-  return (
-    <div className='flex-1'>
-        <PostInput user={userData}/>
-        <Posts posts = {posts!}/>
-    </div>
-  )
+interface FeedProps {
+  user: User | null;
 }
 
-export default Feed
+const Feed = ({ user }: FeedProps) => {
+  const userData = user ? JSON.parse(JSON.stringify(user)) : null;
+    
+  return (
+    <div className="space-y-4">
+      <PostInput user={userData} />
+      <Posts />
+    </div>
+  );
+};
+
+export default Feed;

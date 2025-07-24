@@ -1,24 +1,60 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
-const page: React.FC = () => {
+const ProfilePage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState("/profile.png");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleConnect = () => {
     setIsConnected(!isConnected);
   };
 
+  const handleChangePhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePhoto(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 bg-cover bg-center" style={{backgroundImage: "url('/images/bmhome.jpg')"}}>
+    <div className="min-h-screen bg-gray-100 bg-cover bg-center pt-16" style={{backgroundImage: "url('/bmhome.jpg')"}}>
       <div className="max-w-5xl mx-auto p-5">
         {/* Profile Header */}
         <header className="bg-white rounded-lg shadow-sm mb-5">
-          <div className="h-48 w-full bg-cover bg-center" style={{backgroundImage: "url('/images/cover-pic.png')"}}></div>
+          <div className="h-48 w-full bg-cover bg-center" style={{backgroundImage: "url('/cover-pic.png')"}}></div>
           <div className="relative text-center p-5">
-            <img 
-              src="/images/ajaypp.jpg" 
-              alt="Profile" 
-              className="w-36 h-36 object-cover rounded-full border-2 border-gray-300 mx-auto -mt-16"
+            <div className="relative inline-block">
+              <img 
+                src={profilePhoto} 
+                alt="Profile" 
+                className="w-36 h-36 object-cover rounded-full border-2 border-gray-300 mx-auto -mt-16"
+              />
+              <button
+                onClick={handleChangePhoto}
+                className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-colors duration-200"
+                title="Change profile photo"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
             />
             <h1 className="text-3xl font-bold mt-3 text-gray-900">Devraj Rana</h1>
             <p className="text-xl text-gray-700">Student of BCA at COER University</p>
@@ -77,7 +113,7 @@ const page: React.FC = () => {
 
             <div className="bg-white rounded-lg p-5 shadow-sm">
               <div className="flex items-start mb-5">
-                <img src="/images/ajaypp.jpg" alt="" className="w-8 h-8 rounded-full mr-3" />
+                <img src={profilePhoto} alt="" className="w-8 h-8 rounded-full mr-3" />
                 <div>
                   <h3 className="text-lg font-bold">Devraj Rana</h3>
                   <p className="text-sm text-gray-600">COER University Roorkee</p>
@@ -87,13 +123,13 @@ const page: React.FC = () => {
               <p className="text-gray-700 mb-4">
                 Ideathon-2024, COER University Roorkee, Uttarakhand· Led the team in presenting the project "COER Altas: Personalized Map of My College," securing 3rd place in the competition project-COER Atlas a Personalized map for the vistiors and freshers.
               </p>
-              <img src="/images/Screenshot (80).png" alt="Project Screenshot" className="w-full mb-4" />
+              <img src="/Screenshot (80).png" alt="Project Screenshot" className="w-full mb-4" />
               
               <div className="flex justify-between items-center py-2 border-b border-gray-300">
                 <div className="flex items-center">
-                  <img src="/images/thumbsup.png" alt="" className="w-4 h-4" />
-                  <img src="/images/love.png" alt="" className="w-4 h-4 -ml-1" />
-                  <img src="/images/clap.png" alt="" className="w-4 h-4 -ml-1" />
+                  <img src="/thumbsup.png" alt="" className="w-4 h-4" />
+                  <img src="/love.png" alt="" className="w-4 h-4 -ml-1" />
+                  <img src="/clap.png" alt="" className="w-4 h-4 -ml-1" />
                   <span className="text-sm text-gray-600 ml-2">Adam Doe and 89 others</span>
                 </div>
                 <div>
@@ -103,23 +139,23 @@ const page: React.FC = () => {
               
               <div className="flex justify-between items-center pt-3">
                 <div className="flex items-center">
-                  <img src="/images/ajaypp.jpg" alt="" className="w-6 h-6 rounded-full" />
-                  <img src="/images/down-arrow.png" alt="" className="w-3 h-3 ml-1" />
+                  <img src={profilePhoto} alt="" className="w-6 h-6 rounded-full" />
+                  <img src="/down-arrow.png" alt="" className="w-3 h-3 ml-1" />
                 </div>
                 <div className="flex items-center">
-                  <img src="/images/like.png" alt="" className="w-5 h-5 mr-2" />
+                  <img src="/like.png" alt="" className="w-5 h-5 mr-2" />
                   <span className="text-sm text-gray-700">Like</span>
                 </div>
                 <div className="flex items-center">
-                  <img src="/images/comment.png" alt="" className="w-5 h-5 mr-2" />
+                  <img src="/comment.png" alt="" className="w-5 h-5 mr-2" />
                   <span className="text-sm text-gray-700">Comment</span>
                 </div>
                 <div className="flex items-center">
-                  <img src="/images/share.png" alt="" className="w-5 h-5 mr-2" />
+                  <img src="/share.png" alt="" className="w-5 h-5 mr-2" />
                   <span className="text-sm text-gray-700">Share</span>
                 </div>
                 <div className="flex items-center">
-                  <img src="/images/send.png" alt="" className="w-5 h-5 mr-2" />
+                  <img src="/send.png" alt="" className="w-5 h-5 mr-2" />
                   <span className="text-sm text-gray-700">Send</span>
                 </div>
               </div>
@@ -178,4 +214,4 @@ const page: React.FC = () => {
   );
 };
 
-export default page;
+export default ProfilePage;

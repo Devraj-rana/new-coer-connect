@@ -1,11 +1,24 @@
-import { IPostDocument } from '@/models/post.model'
 import Image from 'next/image'
 import React from 'react'
 
-const PostContent = ({ post }: { post: IPostDocument }) => {
+interface PostData {
+  _id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  content: string;
+  imageUrl?: string;
+  profilePhoto: string;
+  createdAt: Date;
+  likes: string[];
+  comments: any[];
+}
+
+const PostContent = ({ post }: { post: PostData }) => {
   return (
     <div className='my-3'>
-      <p className='my-3 px-4'>{post?.description}</p>
+      <p className='my-3 px-4'>{post?.content}</p>
       {
         post?.imageUrl && (
           <Image
@@ -21,4 +34,4 @@ const PostContent = ({ post }: { post: IPostDocument }) => {
   )
 }
 
-export default PostContent
+export default PostContent;
