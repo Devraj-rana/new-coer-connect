@@ -13,6 +13,7 @@ import { useRef, useState } from "react";
 import { readFileAsDataUrl } from "@/lib/utils";
 import Image from "next/image";
 import { toast } from "sonner";
+import { createPostAction } from "@/lib/serveractions";
 
 export function PostDialog({
   setOpen,
@@ -36,8 +37,12 @@ export function PostDialog({
   const fileChangeHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const dataUrl = await readFileAsDataUrl(file);
-      setSelectedFile(dataUrl);
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        setSelectedFile(dataUrl);
+      } catch (error: any) {
+        toast.error(error.message || "Failed to process image");
+      }
     }
   };
 
@@ -50,15 +55,10 @@ export function PostDialog({
     }
 
     try {
-      // Mock post creation - in a real app, this would save to database
-      console.log("Creating post:", {
-        content: inputText,
-        image: selectedFile,
-        author: fullName,
-        timestamp: new Date()
-      });
+      // Use the real server action to save to database
+      await createPostAction(inputText, selectedFile || "");
       
-      toast.success("Post created successfully! (This is a demo - posts are not saved to database)");
+      toast.success("Post created successfully!");
       
       // Reset form
       setInputText("");
@@ -66,7 +66,7 @@ export function PostDialog({
       setOpen(false);
     } catch (error) {
       console.log("error occurred", error);
-      toast.error("Something went wrong");
+      toast.error("Something went wrong while creating the post");
     }
   };
 

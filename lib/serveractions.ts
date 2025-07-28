@@ -3,26 +3,16 @@
 import { Post } from "@/models/post.model";
 import { IUser } from "@/models/user.model";
 import { currentUser } from "@clerk/nextjs/server"
-import { v2 as cloudinary } from 'cloudinary';
 import connectDB from "./db";
 import { revalidatePath } from "next/cache";
 import { Comment } from "@/models/comment.model";
-
-cloudinary.config({
-    cloud_name: process.env.CLOUD_NAME,
-    api_key: process.env.API_KEY,
-    api_secret: process.env.API_SECRET
-});
 
 // creating post using server actions
 export const createPostAction = async (inputText: string, selectedFile: string) => {
     await connectDB();
     const user = await currentUser();
-    if (!user) throw new Error('User not athenticated');
+    if (!user) throw new Error('User not authenticated');
     if (!inputText) throw new Error('Input field is required');
-
-    const image = selectedFile;
-
 
     const userDatabase: IUser = {
         firstName: user.firstName || "Patel",
@@ -30,18 +20,17 @@ export const createPostAction = async (inputText: string, selectedFile: string) 
         userId: user.id,
         profilePhoto: user.imageUrl
     }
-    let uploadResponse;
+
     try {
-        if (image) {
-            //1. create post with image
-            uploadResponse = await cloudinary.uploader.upload(image);
+        if (selectedFile) {
+            // 1. Create post with image stored directly in MongoDB
             await Post.create({
                 description: inputText,
                 user: userDatabase,
-                imageUrl: uploadResponse?.secure_url // yha pr image url ayega from cloudinary
+                imageUrl: selectedFile // Store Base64 image data directly
             })
         } else {
-            //2. create post with text only
+            // 2. Create post with text only
             await Post.create({
                 description: inputText,
                 user: userDatabase
@@ -56,6 +45,7 @@ export const createPostAction = async (inputText: string, selectedFile: string) 
 export const getAllPosts = async () => {
     try {
         await connectDB();
+        // Get all posts from all users (public feed)
         const posts = await Post.find().sort({ createdAt: -1 }).populate({ path: 'comments', options: { sort: { createdAt: -1 } } });
         if(!posts) return [];
         return JSON.parse(JSON.stringify(posts));

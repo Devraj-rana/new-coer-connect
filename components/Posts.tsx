@@ -1,5 +1,21 @@
 import React from 'react';
 import Post from './Post';
+import { getAllPosts } from '@/lib/serveractions';
+
+interface DatabasePost {
+  _id: string;
+  user: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    profilePhoto: string;
+  };
+  description: string;
+  imageUrl?: string;
+  createdAt: Date;
+  likes: string[];
+  comments: any[];
+}
 
 interface PostData {
   _id: string;
@@ -15,15 +31,34 @@ interface PostData {
   comments: any[];
 }
 
-interface PostsProps {
-  posts?: PostData[];
-}
+const Posts = async () => {
+  let databasePosts: DatabasePost[] = [];
+  
+  try {
+    databasePosts = await getAllPosts() || [];
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  }
 
-const Posts = ({ posts = [] }: PostsProps) => {
-  // Mock data for demonstration
+  // Transform database posts to component format
+  const transformedPosts: PostData[] = databasePosts.map(post => ({
+    _id: post._id,
+    userId: post.user.userId,
+    firstName: post.user.firstName,
+    lastName: post.user.lastName,
+    username: `${post.user.firstName.toLowerCase()}${post.user.lastName.toLowerCase()}`,
+    content: post.description,
+    imageUrl: post.imageUrl,
+    profilePhoto: post.user.profilePhoto,
+    createdAt: post.createdAt,
+    likes: post.likes || [],
+    comments: post.comments || []
+  }));
+
+  // Mock data for demonstration (fallback if no real posts)
   const mockPosts: PostData[] = [
     {
-      _id: "1",
+      _id: "mock1",
       userId: "user1",
       firstName: "Ajay",
       lastName: "Patel",
@@ -35,7 +70,7 @@ const Posts = ({ posts = [] }: PostsProps) => {
       comments: []
     },
     {
-      _id: "2",
+      _id: "mock2",
       userId: "user2",
       firstName: "Aryan",
       lastName: "Sharma",
@@ -47,7 +82,7 @@ const Posts = ({ posts = [] }: PostsProps) => {
       comments: []
     },
     {
-      _id: "3",
+      _id: "mock3",
       userId: "user3",
       firstName: "Priya",
       lastName: "Singh",
@@ -60,7 +95,8 @@ const Posts = ({ posts = [] }: PostsProps) => {
     }
   ];
 
-  const displayPosts = posts.length > 0 ? posts : mockPosts;
+  // Use real posts if available, otherwise show mock posts
+  const displayPosts = transformedPosts.length > 0 ? transformedPosts : mockPosts;
 
   if (displayPosts.length === 0) {
     return (
