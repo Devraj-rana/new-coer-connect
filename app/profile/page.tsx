@@ -86,7 +86,7 @@ const ProfilePage: React.FC = () => {
             <section className="bg-white rounded-lg p-5 shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-3">About</h2>
               <p className="text-gray-700">
-                A driven Bachelor of Computer Applications student at COER University, Roorkee (2023-2026), skilled in Python (NumPy, Pandas), Java, C++, C, and database tool-; like MySQL and MS Excel. Completed a Python Developer Internship at lntemPe, developing projects like Snake Game and Digital Clock, and certified in JavaScript and computing fundamentals. Demonstrated leadership by managing and presenting the "COER Atlas" project, securing 3rd place at Ideathon 2024 and showcasing it at Bharat Gyan Sama gam 2024. Strong in problem-solving, teamwork, and time management, seeking opportunities to innovate and grow in dynamic environments.
+                A driven Bachelor of Computer Applications student at COER University, Roorkee (2023-2026), skilled in Python (NumPy, Pandas), Java, C++, C, and database tool-; like MySQL and MS Excel. Completed a Python Developer Internship at lntemPe, developing projects like Snake Game and Digital Clock, and certified in JavaScript and computing fundamentals. Demonstrated leadership by managing and presenting the &quot;COER Atlas&quot; project, securing 3rd place at Ideathon 2024 and showcasing it at Bharat Gyan Sama gam 2024. Strong in problem-solving, teamwork, and time management, seeking opportunities to innovate and grow in dynamic environments.
               </p>
             </section>
 
@@ -121,7 +121,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
               <p className="text-gray-700 mb-4">
-                Ideathon-2024, COER University Roorkee, Uttarakhand· Led the team in presenting the project "COER Altas: Personalized Map of My College," securing 3rd place in the competition project-COER Atlas a Personalized map for the vistiors and freshers.
+                Ideathon-2024, COER University Roorkee, Uttarakhand· Led the team in presenting the project &quot;COER Altas: Personalized Map of My College,&quot; securing 3rd place in the competition project-COER Atlas a Personalized map for the vistiors and freshers.
               </p>
               <img src="/Screenshot (80).png" alt="Project Screenshot" className="w-full mb-4" />
               
