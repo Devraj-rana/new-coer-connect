@@ -6,7 +6,8 @@ export interface IPost{
     user:IUser,
     imageUrl?:string,
     likes?:string[],
-    comments?:ICommentDocument[]
+    comments?:ICommentDocument[],
+    sharedFrom?:string
 }
 export interface IPostDocument extends IPost, Document{
     createdAt:Date,
@@ -45,6 +46,11 @@ const postSchema = new mongoose.Schema<IPostDocument>({
     comments:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Comment'
-    }]
+    }],
+    sharedFrom:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Post',
+        default:null
+    }
 },{timestamps:true});
 export const Post : Model<IPostDocument> = mongoose.models?.Post || mongoose.model<IPostDocument>("Post", postSchema);

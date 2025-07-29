@@ -8,7 +8,7 @@ const Comments = ({post}:{post:IPostDocument}) => {
         {
             post?.comments?.map((comment)=>{
                 return (
-                    <Comment key={comment._id} comment={comment}/>
+                    <Comment key={comment._id} comment={comment} postId={post._id}/>
                 )
             })
         } 

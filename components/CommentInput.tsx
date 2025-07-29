@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { createCommentAction } from "@/lib/serveractions";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const CommentInput = ({ postId }: { postId: string }) => {
   const { user } = useUser();

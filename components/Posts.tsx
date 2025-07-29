@@ -24,11 +24,18 @@ interface PostData {
   lastName: string;
   username: string;
   content: string;
+  description: string;
   imageUrl?: string;
   profilePhoto: string;
   createdAt: Date;
   likes: string[];
   comments: any[];
+  user: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    profilePhoto: string;
+  };
 }
 
 const Posts = async () => {
@@ -48,11 +55,13 @@ const Posts = async () => {
     lastName: post.user.lastName,
     username: `${post.user.firstName.toLowerCase()}${post.user.lastName.toLowerCase()}`,
     content: post.description,
+    description: post.description, // Add this for compatibility
     imageUrl: post.imageUrl,
     profilePhoto: post.user.profilePhoto,
     createdAt: post.createdAt,
     likes: post.likes || [],
-    comments: post.comments || []
+    comments: post.comments || [],
+    user: post.user // Add the full user object
   }));
 
   // Mock data for demonstration (fallback if no real posts)
@@ -64,10 +73,17 @@ const Posts = async () => {
       lastName: "Patel",
       username: "ajayp",
       content: "Excited to share that I've joined COER Connect! This platform is amazing for connecting with fellow developers and sharing knowledge. #COERConnect #Networking",
+      description: "Excited to share that I've joined COER Connect! This platform is amazing for connecting with fellow developers and sharing knowledge. #COERConnect #Networking",
       profilePhoto: "/images/ajaypp.jpg",
       createdAt: new Date("2024-01-15"),
       likes: ["user2", "user3"],
-      comments: []
+      comments: [],
+      user: {
+        userId: "user1",
+        firstName: "Ajay",
+        lastName: "Patel",
+        profilePhoto: "/images/ajaypp.jpg"
+      }
     },
     {
       _id: "mock2",
@@ -76,10 +92,17 @@ const Posts = async () => {
       lastName: "Sharma",
       username: "aryans",
       content: "Just completed a new project using Next.js and TypeScript. The development experience has been fantastic! Would love to share more details with the community.",
+      description: "Just completed a new project using Next.js and TypeScript. The development experience has been fantastic! Would love to share more details with the community.",
       profilePhoto: "/images/aryanc.jpg",
       createdAt: new Date("2024-01-14"),
       likes: ["user1"],
-      comments: []
+      comments: [],
+      user: {
+        userId: "user2",
+        firstName: "Aryan",
+        lastName: "Sharma",
+        profilePhoto: "/images/aryanc.jpg"
+      }
     },
     {
       _id: "mock3",
@@ -88,10 +111,17 @@ const Posts = async () => {
       lastName: "Singh",
       username: "priyas",
       content: "Looking forward to the upcoming tech meetup! Who else is planning to attend? Let's connect and share ideas about the latest in web development.",
+      description: "Looking forward to the upcoming tech meetup! Who else is planning to attend? Let's connect and share ideas about the latest in web development.",
       profilePhoto: "/default-avator.png",
       createdAt: new Date("2024-01-13"),
       likes: ["user1", "user2"],
-      comments: []
+      comments: [],
+      user: {
+        userId: "user3",
+        firstName: "Priya",
+        lastName: "Singh",
+        profilePhoto: "/default-avator.png"
+      }
     }
   ];
 
