@@ -55,6 +55,29 @@ export const getAllPosts = async () => {
     }
 }
 
+// get posts by specific user
+export const getUserPosts = async (userId?: string) => {
+    try {
+        await connectDB();
+        const user = await currentUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        // Use provided userId or current user's ID
+        const targetUserId = userId || user.id;
+        
+        // Get posts from specific user
+        const posts = await Post.find({ 'user.userId': targetUserId })
+            .sort({ createdAt: -1 })
+            .populate({ path: 'comments', options: { sort: { createdAt: -1 } } });
+        
+        if (!posts) return [];
+        return JSON.parse(JSON.stringify(posts));
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+}
+
 // delete post by id
 export const deletePostAction = async (postId: string) => {
     await connectDB();

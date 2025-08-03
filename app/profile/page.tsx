@@ -1,217 +1,628 @@
-'use client'
-import React, { useState, useRef } from 'react';
+"use client";
 
-const ProfilePage: React.FC = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState("/profile.png");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { getUserProfile, updateUserProfile } from "@/lib/profileActions";
+import { getFollowCounts } from "@/lib/followActions";
+import { getUserPosts } from "@/lib/serveractions";
+import FollowButton from "@/components/FollowButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import RoleBadge from "@/components/RoleBadge";
+import { toast } from "sonner";
+import Image from "next/image";
+import { 
+  MapPin, 
+  Building, 
+  Globe, 
+  Phone, 
+  Mail, 
+  Calendar,
+  Edit3,
+  Save,
+  X,
+  Plus,
+  Linkedin,
+  Github,
+  Twitter,
+  Instagram,
+  Briefcase,
+  GraduationCap,
+  Star,
+  Users,
+  MessageCircle
+} from "lucide-react";
 
-  const handleConnect = () => {
-    setIsConnected(!isConnected);
+interface ProfileData {
+  _id?: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  company?: string;
+  position?: string;
+  profilePhoto: string;
+  coverPhoto?: string;
+  role?: 'student' | 'teacher' | 'admin';
+  academicYear?: '1st' | '2nd' | '3rd' | '4th';
+  branch?: 'BCA' | 'B.Tech' | 'MCA' | 'M.Tech' | 'BBA' | 'MBA' | 'BSc' | 'MSc' | 'Other';
+  skills?: string[];
+  education?: any[];
+  experience?: any[];
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+    instagram?: string;
   };
+  isProfileComplete: boolean;
+  isOnboardingComplete: boolean;
+  createdAt?: string;
+}
 
-  const handleChangePhoto = () => {
-    fileInputRef.current?.click();
-  };
+export default function ProfilePage() {
+  const { user } = useUser();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<ProfileData>>({});
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfilePhoto(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    try {
+      const profileData = await getUserProfile();
+      if (profileData) {
+        setProfile(profileData);
+        setEditData(profileData);
+        
+        // Load follow counts
+        const counts = await getFollowCounts(profileData.userId);
+        setFollowCounts(counts);
+        
+        // Load user posts
+        setPostsLoading(true);
+        const posts = await getUserPosts();
+        setUserPosts(posts || []);
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    } finally {
+      setLoading(false);
+      setPostsLoading(false);
     }
   };
 
+  const handleSave = async () => {
+    try {
+      const updatedProfile = await updateUserProfile(editData);
+      setProfile(updatedProfile);
+      setEditing(false);
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name.startsWith('social.')) {
+      const socialPlatform = name.split('.')[1];
+      setEditData(prev => ({
+        ...prev,
+        socialLinks: {
+          ...prev.socialLinks,
+          [socialPlatform]: value
+        }
+      }));
+    } else {
+      setEditData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Profile not found</h2>
+          <p className="text-gray-600">Please complete your onboarding first.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 bg-cover bg-center pt-16" style={{backgroundImage: "url('/bmhome.jpg')"}}>
-      <div className="max-w-5xl mx-auto p-5">
-        {/* Profile Header */}
-        <header className="bg-white rounded-lg shadow-sm mb-5">
-          <div className="h-48 w-full bg-cover bg-center" style={{backgroundImage: "url('/cover-pic.png')"}}></div>
-          <div className="relative text-center p-5">
-            <div className="relative inline-block">
-              <img 
-                src={profilePhoto} 
-                alt="Profile" 
-                className="w-36 h-36 object-cover rounded-full border-2 border-gray-300 mx-auto -mt-16"
-              />
-              <button
-                onClick={handleChangePhoto}
-                className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-colors duration-200"
-                title="Change profile photo"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <h1 className="text-3xl font-bold mt-3 text-gray-900">Devraj Rana</h1>
-            <p className="text-xl text-gray-700">Student of BCA at COER University</p>
-            <p className="text-gray-600 mb-5">📍 UTTRAKHAND, INDIA</p>
-            
-            <div className="flex gap-3 justify-center">
-              <button 
-                onClick={handleConnect}
-                className={`rounded-full px-6 py-2 font-semibold ${isConnected ? 'bg-gray-600 text-white' : 'bg-blue-600 text-white'}`}
-              >
-                {isConnected ? 'Pending' : 'Connect'}
-              </button>
-              <button className="rounded-full px-6 py-2 font-semibold border border-blue-600 text-blue-600 bg-white">
-                Message
-              </button>
-              <a href="/resume.html">
-                <button className="rounded px-6 py-2 font-semibold bg-green-600 text-white">
-                  ATS Checker
-                </button>
-              </a>
-            </div>
-          </div>
-        </header>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header/Cover Section */}
+      <div className="relative">
+        {/* Cover Photo */}
+        <div className="h-64 md:h-80 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        </div>
 
-        {/* Main Content */}
-        <main className="grid grid-cols-3 gap-5">
-          {/* Left Column (2/3 width) */}
-          <div className="col-span-2 space-y-5">
-            <section className="bg-white rounded-lg p-5 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-3">About</h2>
-              <p className="text-gray-700">
-                A driven Bachelor of Computer Applications student at COER University, Roorkee (2023-2026), skilled in Python (NumPy, Pandas), Java, C++, C, and database tool-; like MySQL and MS Excel. Completed a Python Developer Internship at lntemPe, developing projects like Snake Game and Digital Clock, and certified in JavaScript and computing fundamentals. Demonstrated leadership by managing and presenting the &quot;COER Atlas&quot; project, securing 3rd place at Ideathon 2024 and showcasing it at Bharat Gyan Sama gam 2024. Strong in problem-solving, teamwork, and time management, seeking opportunities to innovate and grow in dynamic environments.
-              </p>
-            </section>
-
-            <section className="bg-white rounded-lg p-5 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-3">Experience</h2>
-              <div className="border-b border-gray-200 pb-4">
-                <h3 className="text-lg font-semibold">Bachelor of Computer Applications Student</h3>
-                <p className="text-gray-700">
-                  <strong>JavaScript Training Program, Udemy</strong> - Completed a 10-day program on JavaScript fundamentals, including syntax and practical applications.
-                </p>
-                <p className="text-gray-700">
-                  <strong>Python Developer Intern, lnternPe</strong> - Developed Python projects, including Snake Game, Digital Clock, Tic_Tac_Toc, and 4 Dot Game. Improved problem-solving, debugging, and teamwork skills.
-                </p>
+        {/* Profile Info Overlay */}
+        <div className="container mx-auto px-4 relative -mt-32">
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
+            {/* Profile Photo */}
+            <div className="relative">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
+                <Image
+                  src={profile.profilePhoto}
+                  alt={`${profile.firstName} ${profile.lastName}`}
+                  width={160}
+                  height={160}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            </section>
-
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <h3 className="text-xl font-bold mb-2">Personal Information</h3>
-              <p className="text-gray-700">Name:Devraj Rana</p>
-              <p className="text-gray-700">Profession: Student</p>
-              <p className="text-gray-700">Contact_number: 6398056513</p>
-              <p className="text-gray-700">Email: devrajrana@gmail.com</p>
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
             </div>
 
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <div className="flex items-start mb-5">
-                <img src={profilePhoto} alt="" className="w-8 h-8 rounded-full mr-3" />
+            {/* Basic Info */}
+            <div className="flex-1 text-white md:mb-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-bold">Devraj Rana</h3>
-                  <p className="text-sm text-gray-600">COER University Roorkee</p>
-                  <p className="text-sm text-gray-600">2 hours ago</p>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl md:text-4xl font-bold">
+                      {profile.firstName} {profile.lastName}
+                    </h1>
+                    {profile.role && (
+                      <RoleBadge 
+                        role={profile.role} 
+                        academicYear={profile.academicYear}
+                        branch={profile.branch}
+                        size="md"
+                      />
+                    )}
+                  </div>
+                  {profile.position && (
+                    <p className="text-xl text-blue-100 mt-1">{profile.position}</p>
+                  )}
+                  {profile.company && (
+                    <p className="text-blue-200 flex items-center gap-2 mt-2">
+                      <Building className="w-4 h-4" />
+                      {profile.company}
+                    </p>
+                  )}
+                  {profile.location && (
+                    <p className="text-blue-200 flex items-center gap-2 mt-1">
+                      <MapPin className="w-4 h-4" />
+                      {profile.location}
+                    </p>
+                  )}
+                  
+                  {/* Follow Counts */}
+                  <div className="flex items-center gap-6 mt-3">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">{followCounts.followers}</div>
+                      <div className="text-blue-200 text-sm">Followers</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">{followCounts.following}</div>
+                      <div className="text-blue-200 text-sm">Following</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Ideathon-2024, COER University Roorkee, Uttarakhand· Led the team in presenting the project &quot;COER Altas: Personalized Map of My College,&quot; securing 3rd place in the competition project-COER Atlas a Personalized map for the vistiors and freshers.
-              </p>
-              <img src="/Screenshot (80).png" alt="Project Screenshot" className="w-full mb-4" />
-              
-              <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                <div className="flex items-center">
-                  <img src="/thumbsup.png" alt="" className="w-4 h-4" />
-                  <img src="/love.png" alt="" className="w-4 h-4 -ml-1" />
-                  <img src="/clap.png" alt="" className="w-4 h-4 -ml-1" />
-                  <span className="text-sm text-gray-600 ml-2">Adam Doe and 89 others</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">22 comments · 40 shares</span>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center pt-3">
-                <div className="flex items-center">
-                  <img src={profilePhoto} alt="" className="w-6 h-6 rounded-full" />
-                  <img src="/down-arrow.png" alt="" className="w-3 h-3 ml-1" />
-                </div>
-                <div className="flex items-center">
-                  <img src="/like.png" alt="" className="w-5 h-5 mr-2" />
-                  <span className="text-sm text-gray-700">Like</span>
-                </div>
-                <div className="flex items-center">
-                  <img src="/comment.png" alt="" className="w-5 h-5 mr-2" />
-                  <span className="text-sm text-gray-700">Comment</span>
-                </div>
-                <div className="flex items-center">
-                  <img src="/share.png" alt="" className="w-5 h-5 mr-2" />
-                  <span className="text-sm text-gray-700">Share</span>
-                </div>
-                <div className="flex items-center">
-                  <img src="/send.png" alt="" className="w-5 h-5 mr-2" />
-                  <span className="text-sm text-gray-700">Send</span>
+
+                <div className="flex flex-col gap-2">
+                  {/* Follow Button */}
+                  <FollowButton 
+                    userId={profile.userId} 
+                    className="bg-white text-blue-600 hover:bg-blue-50"
+                  />
+                  
+                  <Button
+                    onClick={() => editing ? handleSave() : setEditing(true)}
+                    className="bg-white text-blue-600 hover:bg-blue-50"
+                  >
+                    {editing ? (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Edit Profile
+                      </>
+                    )}
+                  </Button>
+                  
+                  {editing && (
+                    <Button
+                      onClick={() => {
+                        setEditing(false);
+                        setEditData(profile);
+                      }}
+                      variant="outline"
+                      className="border-white text-white hover:bg-white hover:text-blue-600"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Right Column (1/3 width) */}
-          <aside className="col-span-1 space-y-5">
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Education</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-md font-semibold">2023-2026 Bachelor of Computer Applications, COER University Roorkee, Uttarakhand</h4>
-                  <p className="text-gray-700">Currently pursuing a Bachelor of Computer Applications (BCA) at COER University, Roorkee, Uttarakhand (2023-2026), focusing on [specific area, e.g., software development, data analytics, etc.]</p>
-                </div>
-                <div>
-                  <h4 className="text-md font-semibold">2022-2023 Mahi International School Agra, Uttar Pradesh</h4>
-                  <p className="text-gray-700">Science with Mathematics, Completed Intermediate education from Mahi International School, Agra, Uttar Pradesh CBSE Board in 2023.</p>
-                </div>
-                <div>
-                  <h4 className="text-md font-semibold">2019-2020 Army Public School Agra, Uttar Pradesh</h4>
-                  <p className="text-gray-700">Completed High School education from Army Public School, Agra, Uttar Pradesh CBSE Board in 2021.</p>
-                </div>
-              </div>
-            </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* About */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  About
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {editing ? (
+                  <Textarea
+                    name="bio"
+                    value={editData.bio || ""}
+                    onChange={handleInputChange}
+                    placeholder="Tell us about yourself..."
+                    rows={4}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-gray-700 leading-relaxed">
+                    {profile.bio || "No bio available."}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Skills</h3>
-              <ul className="space-y-2">
-                <li className="flex justify-between">
-                  <span>Python</span>
-                  <span className="text-gray-600">99+</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>C language</span>
-                  <span className="text-gray-600">99+</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>HTML & CSS</span>
-                  <span className="text-gray-600">99+</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>JAVA</span>
-                  <span className="text-gray-600">87</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>C++</span>
-                  <span className="text-gray-600">76</span>
-                </li>
-              </ul>
-            </div>
-          </aside>
-        </main>
+            {/* Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  <div className="flex-1">
+                    {editing ? (
+                      <Input
+                        name="email"
+                        value={editData.email || ""}
+                        onChange={handleInputChange}
+                        placeholder="Email address"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{profile.email}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-green-600" />
+                  <div className="flex-1">
+                    {editing ? (
+                      <Input
+                        name="phone"
+                        value={editData.phone || ""}
+                        onChange={handleInputChange}
+                        placeholder="Phone number"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{profile.phone || "Not provided"}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                  <div className="flex-1">
+                    {editing ? (
+                      <Input
+                        name="website"
+                        value={editData.website || ""}
+                        onChange={handleInputChange}
+                        placeholder="Website URL"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{profile.website || "Not provided"}</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Skills */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Skills
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills?.map((skill, index) => (
+                    <Badge key={index} variant="secondary" className="px-3 py-1">
+                      {skill}
+                    </Badge>
+                  ))}
+                  {(!profile.skills || profile.skills.length === 0) && (
+                    <p className="text-gray-500">No skills added yet.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {editing ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Linkedin className="w-5 h-5 text-blue-600" />
+                      <Input
+                        name="social.linkedin"
+                        value={editData.socialLinks?.linkedin || ""}
+                        onChange={handleInputChange}
+                        placeholder="LinkedIn URL"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Github className="w-5 h-5 text-gray-800" />
+                      <Input
+                        name="social.github"
+                        value={editData.socialLinks?.github || ""}
+                        onChange={handleInputChange}
+                        placeholder="GitHub URL"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Twitter className="w-5 h-5 text-blue-400" />
+                      <Input
+                        name="social.twitter"
+                        value={editData.socialLinks?.twitter || ""}
+                        onChange={handleInputChange}
+                        placeholder="Twitter URL"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Instagram className="w-5 h-5 text-pink-600" />
+                      <Input
+                        name="social.instagram"
+                        value={editData.socialLinks?.instagram || ""}
+                        onChange={handleInputChange}
+                        placeholder="Instagram URL"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {profile.socialLinks?.linkedin && (
+                      <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors">
+                        <Linkedin className="w-5 h-5" />
+                        <span>LinkedIn</span>
+                      </a>
+                    )}
+                    {profile.socialLinks?.github && (
+                      <a href={profile.socialLinks.github} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-3 text-gray-800 hover:text-gray-600 transition-colors">
+                        <Github className="w-5 h-5" />
+                        <span>GitHub</span>
+                      </a>
+                    )}
+                    {profile.socialLinks?.twitter && (
+                      <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-3 text-blue-400 hover:text-blue-600 transition-colors">
+                        <Twitter className="w-5 h-5" />
+                        <span>Twitter</span>
+                      </a>
+                    )}
+                    {profile.socialLinks?.instagram && (
+                      <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-3 text-pink-600 hover:text-pink-800 transition-colors">
+                        <Instagram className="w-5 h-5" />
+                        <span>Instagram</span>
+                      </a>
+                    )}
+                    {(!profile.socialLinks || Object.keys(profile.socialLinks).length === 0) && (
+                      <p className="text-gray-500">No social links added yet.</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* My Posts Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  My Posts ({userPosts.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {postsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-500">Loading posts...</p>
+                  </div>
+                ) : userPosts.length > 0 ? (
+                  <div className="space-y-6">
+                    {userPosts.map((post) => (
+                      <div key={post._id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                        {/* Post Header */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <Image
+                            src={post.user.profilePhoto}
+                            alt={`${post.user.firstName} ${post.user.lastName}`}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">
+                              {post.user.firstName} {post.user.lastName}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {new Date(post.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Post Content */}
+                        <div className="mb-4">
+                          <p className="text-gray-800 mb-3">{post.description}</p>
+                          {post.imageUrl && (
+                            <div className="rounded-lg overflow-hidden">
+                              <Image
+                                src={post.imageUrl}
+                                alt="Post image"
+                                width={600}
+                                height={400}
+                                className="w-full h-auto object-cover"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Post Stats */}
+                        <div className="flex items-center gap-6 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <span className="text-red-500">❤</span>
+                            {post.likes?.length || 0} likes
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="w-4 h-4" />
+                            {post.comments?.length || 0} comments
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No posts yet.</p>
+                    <p className="text-sm">Share your first post to get started!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Experience Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5" />
+                    Experience
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Experience
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile.experience && profile.experience.length > 0 ? (
+                  <div className="space-y-4">
+                    {profile.experience.map((exp, index) => (
+                      <div key={index} className="border-l-4 border-blue-200 pl-4 pb-4">
+                        <h3 className="font-semibold">{exp.position}</h3>
+                        <p className="text-blue-600">{exp.company}</p>
+                        <p className="text-sm text-gray-500">{exp.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Briefcase className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No work experience added yet.</p>
+                    <p className="text-sm">Add your professional experience to showcase your career journey.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Education Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5" />
+                    Education
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Education
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile.education && profile.education.length > 0 ? (
+                  <div className="space-y-4">
+                    {profile.education.map((edu, index) => (
+                      <div key={index} className="border-l-4 border-green-200 pl-4 pb-4">
+                        <h3 className="font-semibold">{edu.degree}</h3>
+                        <p className="text-green-600">{edu.institution}</p>
+                        <p className="text-sm text-gray-500">{edu.fieldOfStudy}</p>
+                        <p className="text-xs text-gray-400">
+                          {edu.startYear} - {edu.endYear || 'Present'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <GraduationCap className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No education information added yet.</p>
+                    <p className="text-sm">Add your educational background to complete your profile.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default ProfilePage;
+}

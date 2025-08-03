@@ -12,6 +12,9 @@ const Navbar = () => {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/people", label: "People" },
+    { href: "/teachers", label: "Teachers" },
+    { href: "/students", label: "Students" },
     { href: "/live-study", label: "Live Study" },
     { href: "/resume", label: "Resume" },
     { href: "/profile", label: "Profile" },
