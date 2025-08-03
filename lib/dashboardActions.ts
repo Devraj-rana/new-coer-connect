@@ -61,8 +61,8 @@ export const getUserStats = async () => {
       teachingClasses
     ] = await Promise.all([
       Post.countDocuments({ 'user.userId': user.id }),
-      Class.countDocuments({ 'enrolledStudents.userId': user.id }),
-      Class.countDocuments({ 'teacher.userId': user.id, isActive: true })
+      Class.countDocuments({ 'enrolledStudents.userId': user.id }).catch(() => 0),
+      Class.countDocuments({ 'teacher.userId': user.id, isActive: true }).catch(() => 0)
     ]);
 
     // Get user connections (followers/following)
@@ -135,10 +135,32 @@ export const getTrendingPosts = async () => {
   
   try {
     // Get posts with most likes/comments (trending)
-    const trendingPosts = await Post.find()
-      .sort({ likes: -1, 'comments.length': -1, createdAt: -1 })
-      .limit(3)
-      .populate({ path: 'comments', options: { sort: { createdAt: -1 } } });
+    const trendingPosts = await Post.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size: { $ifNull: ["$likes", []] } },
+          commentsCount: { $size: { $ifNull: ["$comments", []] } }
+        }
+      },
+      {
+        $sort: { 
+          likesCount: -1, 
+          commentsCount: -1, 
+          createdAt: -1 
+        }
+      },
+      {
+        $limit: 3
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: 'comments',
+          foreignField: '_id',
+          as: 'comments'
+        }
+      }
+    ]);
 
     return trendingPosts;
   } catch (error) {

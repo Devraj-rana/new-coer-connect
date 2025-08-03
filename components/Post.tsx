@@ -70,7 +70,7 @@ const Post = ({ post }: { post: PostData }) => {
   };
 
   return (
-    <div className="bg-white my-2 mx-2 md:mx-0 rounded-lg border border-gray-300">
+    <div className="surface my-2 mx-2 md:mx-0 rounded-lg border">
       <div className="flex gap-2 p-4">
         <ProfilePhoto src={post.profilePhoto} />
         <div className="flex items-center justify-between w-full">
@@ -88,11 +88,11 @@ const Post = ({ post }: { post: PostData }) => {
                 </Badge>
               )}
             </h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               @{post.username}
             </p>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               <ReactTimeago date={new Date(post.createdAt)} />
             </p>
           </div>

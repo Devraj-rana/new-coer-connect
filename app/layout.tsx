@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,15 +23,28 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${inter.className} min-h-screen bg-gray-50`}>
-          <Navbar />
-          <MainLayout>
-            <main className="w-full">
-              {children}
-            </main>
-          </MainLayout>
-          <Toaster position="top-right" richColors />
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${inter.className} min-h-screen transition-colors duration-300`}>
+          <ThemeProvider>
+            <Navbar />
+            <MainLayout>
+              <main className="w-full">
+                {children}
+              </main>
+            </MainLayout>
+            <Toaster 
+              position="top-right" 
+              richColors 
+              theme="system"
+              toastOptions={{
+                style: {
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+              }}
+            />
+          </ThemeProvider>
           <Analytics />
           <SpeedInsights />
         </body>

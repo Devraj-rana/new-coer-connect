@@ -17,9 +17,10 @@ export function TrendingPosts() {
     const loadTrendingPosts = async () => {
       try {
         const trendingPosts = await getTrendingPosts();
-        setPosts(trendingPosts);
+        setPosts(trendingPosts || []);
       } catch (error) {
         console.error('Error loading trending posts:', error);
+        setPosts([]);
       } finally {
         setIsLoading(false);
       }
@@ -39,7 +40,7 @@ export function TrendingPosts() {
 
   if (isLoading) {
     return (
-      <Card className="bg-white shadow-lg">
+      <Card className="surface shadow-lg">
         <CardHeader>
           <Skeleton className="h-6 w-32" />
         </CardHeader>
@@ -68,18 +69,18 @@ export function TrendingPosts() {
 
   if (posts.length === 0) {
     return (
-      <Card className="bg-white shadow-lg">
+      <Card className="surface shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-orange-600" />
+            <TrendingUp className="w-5 h-5 text-primary" />
             Trending Posts
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No trending posts</h3>
-            <p className="text-gray-600">Check back later for trending content!</p>
+            <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-card-foreground">No trending posts</h3>
+            <p className="text-muted-foreground">Check back later for trending content!</p>
           </div>
         </CardContent>
       </Card>
@@ -87,10 +88,10 @@ export function TrendingPosts() {
   }
 
   return (
-    <Card className="bg-white shadow-lg">
+    <Card className="surface shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-orange-600" />
+          <TrendingUp className="w-5 h-5 text-primary" />
           Trending Posts
         </CardTitle>
       </CardHeader>
@@ -104,18 +105,16 @@ export function TrendingPosts() {
                 className="w-8 h-8 rounded-full object-cover"
               />
               <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm text-gray-800 truncate">
+                <h4 className="font-medium text-sm text-foreground truncate">
                   {post.user?.firstName} {post.user?.lastName}
                 </h4>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {formatTimeAgo(post.createdAt)}
                 </p>
               </div>
             </div>
             
-            <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-              {post.description}
-            </p>
+            <p className="text-sm text-foreground mb-3 line-clamp-3">{post.description}</p>
             
             {post.imageUrl && (
               <div className="mb-3">
@@ -127,7 +126,7 @@ export function TrendingPosts() {
               </div>
             )}
             
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Heart className="w-3 h-3" />
                 {post.likes?.length || 0}

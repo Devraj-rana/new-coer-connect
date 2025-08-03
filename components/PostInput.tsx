@@ -25,14 +25,14 @@ const PostInput = ({ user }: PostInputProps) => {
   const userImage = user?.imageUrl || "/default-avator.png";
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <div className="surface p-4 rounded-lg shadow-sm border">
       <div className="flex items-center gap-3">
         <ProfilePhoto src={userImage} />
         
         <Input
           type="text"
           placeholder="What's on your mind?"
-          className="flex-1 rounded-full bg-gray-50 hover:bg-gray-100 h-12 cursor-pointer transition-colors"
+          className="flex-1 rounded-full surface-secondary hover:surface-tertiary h-12 cursor-pointer transition-colors"
           onClick={handleInputClick}
           readOnly
         />

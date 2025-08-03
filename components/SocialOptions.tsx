@@ -99,12 +99,12 @@ const SocialOptions = ({ post }: { post: PostData }) => {
 
   return (
     <>
-      <div className="flex justify-between items-center px-4 py-2 border-t border-gray-200">
+      <div className="flex justify-between items-center px-4 py-2 border-t border">
         <Button
           variant="ghost"
           className={`flex items-center space-x-1 ${
-            liked ? "text-blue-600" : "text-gray-500"
-          } hover:text-blue-600`}
+            liked ? "text-primary" : "text-muted-foreground"
+          } hover:text-primary`}
           onClick={likeOrDislikeHandler}
         >
           <ThumbsUp className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
@@ -113,7 +113,7 @@ const SocialOptions = ({ post }: { post: PostData }) => {
 
         <Button
           variant="ghost"
-          className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
+          className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
           onClick={() => setCommentOpen(!commentOpen)}
         >
           <MessageCircleMore className="w-4 h-4" />
@@ -122,7 +122,7 @@ const SocialOptions = ({ post }: { post: PostData }) => {
 
         <Button
           variant="ghost"
-          className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
+          className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
           onClick={shareHandler}
         >
           <Repeat className="w-4 h-4" />
@@ -131,7 +131,7 @@ const SocialOptions = ({ post }: { post: PostData }) => {
 
         <Button
           variant="ghost"
-          className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
+          className="flex items-center space-x-1 text-muted-foreground hover:text-primary"
           onClick={sendHandler}
         >
           <Send className="w-4 h-4" />
@@ -151,7 +151,7 @@ const SocialOptions = ({ post }: { post: PostData }) => {
               />
             ))}
             {(!post.comments || post.comments.length === 0) && (
-              <p className="text-gray-500 text-sm text-center py-4">No comments yet. Be the first to comment!</p>
+              <p className="text-muted-foreground text-sm text-center py-4">No comments yet. Be the first to comment!</p>
             )}
           </div>
         </div>
