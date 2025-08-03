@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import MainLayout from "@/components/MainLayout";
 import { ClerkProvider } from "@clerk/nextjs";
-import { AuthProvider } from "@/lib/firebase/auth";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,19 +20,17 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <AuthProvider>
-        <html lang="en">
-          <body className={`${inter.className} min-h-screen bg-gray-50`}>
-            <Navbar />
-            <MainLayout>
-              <main className="w-full">
-                {children}
-              </main>
-            </MainLayout>
-            <Toaster position="top-right" richColors />
-          </body>
-        </html>
-      </AuthProvider>
+      <html lang="en">
+        <body className={`${inter.className} min-h-screen bg-gray-50`}>
+          <Navbar />
+          <MainLayout>
+            <main className="w-full">
+              {children}
+            </main>
+          </MainLayout>
+          <Toaster position="top-right" richColors />
+        </body>
+      </html>
     </ClerkProvider>
   );
 }

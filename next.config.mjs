@@ -1,13 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Firebase hosting configuration
-    output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
-    trailingSlash: true,
-    distDir: 'out',
-    
     images:{
-        // Disable image optimization for static export
-        unoptimized: process.env.NODE_ENV === 'production',
         remotePatterns:[
             {
                 protocol:'https',
@@ -28,10 +21,6 @@ const nextConfig = {
             {
                 protocol:'https',
                 hostname:'lh3.googleusercontent.com'
-            },
-            {
-                protocol:'https',
-                hostname:'firebasestorage.googleapis.com'
             }
         ]
     },
