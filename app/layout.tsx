@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import MainLayout from "@/components/MainLayout";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +31,8 @@ export default function RootLayout({
             </main>
           </MainLayout>
           <Toaster position="top-right" richColors />
+          <Analytics />
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
