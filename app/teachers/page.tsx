@@ -77,24 +77,26 @@ export default function TeachersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <GraduationCap className="w-8 h-8 text-green-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Teachers</h1>
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl">
+              <GraduationCap className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold text-foreground">Connect with Teachers</h1>
           </div>
-          <p className="text-gray-600 mb-6">
-            Connect with educators and mentors in the COER community
+          <p className="text-lg text-muted-foreground mb-6">
+            Discover and connect with experienced educators and mentors in the COER community
           </p>
 
           {/* Search Bar */}
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               type="text"
-              placeholder="Search teachers by name, subject, or institution..."
+              placeholder="Search teachers by name, subject, or expertise..."
               value={searchQuery}
               onChange={handleSearch}
               className="pl-10 pr-4 py-2 w-full"
@@ -104,84 +106,111 @@ export default function TeachersPage() {
 
         {/* Teachers Grid */}
         {teachers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teachers.map((teacher) => (
-              <Card key={teacher.userId} className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
+              <Card key={teacher.userId} className="group relative overflow-hidden surface hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border-0 rounded-2xl">
+                {/* Gradient Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Header with Enhanced Profile */}
+                <CardHeader className="pb-4 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="relative">
+                      <div className="relative overflow-hidden rounded-2xl">
                         <Image
                           src={teacher.profilePhoto}
                           alt={`${teacher.firstName} ${teacher.lastName}`}
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-green-200"
+                          width={80}
+                          height={80}
+                          className="w-20 h-20 object-cover transition-transform duration-300 group-hover:scale-110"
                         />
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
-                        <div className="absolute -top-1 -left-1">
-                          <RoleBadge role="teacher" size="sm" />
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                       
-                      <div className="flex-1 min-w-0">
-                        <Link 
-                          href={`/profile/${teacher.userId}`}
-                          className="hover:text-green-600 transition-colors"
-                        >
-                          <h3 className="font-semibold text-lg text-gray-900 truncate">
-                            {teacher.firstName} {teacher.lastName}
-                          </h3>
-                        </Link>
-                        
-                        {teacher.position && (
-                          <p className="text-green-600 text-sm font-medium truncate">
+                      {/* Status Indicator */}
+                      <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-gradient-to-r from-emerald-400 to-green-500 border-3 border-white rounded-full shadow-lg flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      {/* Role Badge */}
+                      <div className="absolute -top-2 -left-2">
+                        <RoleBadge role="teacher" size="sm" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <Link 
+                        href={`/profile/${teacher.userId}`}
+                        className="group/link block"
+                      >
+                        <h3 className="font-bold text-xl text-foreground group-hover/link:text-primary transition-colors duration-200 truncate">
+                          {teacher.firstName} {teacher.lastName}
+                        </h3>
+                      </Link>
+                      
+                      {teacher.position && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <GraduationCap className="w-4 h-4 text-emerald-600" />
+                          <p className="text-emerald-600 text-sm font-semibold truncate">
                             {teacher.position}
                           </p>
-                        )}
-                        
-                        {teacher.company && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <Building className="w-3 h-3 text-gray-400" />
-                            <p className="text-gray-600 text-xs truncate">
-                              {teacher.company}
-                            </p>
-                          </div>
-                        )}
-                        
-                        {teacher.location && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3 text-gray-400" />
-                            <p className="text-gray-500 text-xs truncate">
-                              {teacher.location}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+                      
+                      {teacher.company && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Building className="w-4 h-4 text-muted-foreground" />
+                          <p className="text-muted-foreground text-sm truncate">
+                            {teacher.company}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {teacher.location && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <p className="text-muted-foreground text-sm truncate">
+                            {teacher.location}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0">
-                  {/* Bio */}
+                <CardContent className="pt-0 relative z-10">
+                  {/* Bio Section */}
                   {teacher.bio && (
-                    <p className="text-gray-700 text-sm mb-4 line-clamp-2">
-                      {teacher.bio}
-                    </p>
+                    <div className="mb-6">
+                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
+                        {teacher.bio}
+                      </p>
+                    </div>
                   )}
 
-                  {/* Skills */}
+                  {/* Skills Section */}
                   {teacher.skills && teacher.skills.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {teacher.skills.slice(0, 3).map((skill, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs px-2 py-1 bg-green-100 text-green-800">
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <BookOpen className="w-4 h-4 text-emerald-600" />
+                        <span className="text-sm font-semibold text-foreground">Expertise</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {teacher.skills.slice(0, 4).map((skill, index) => (
+                          <Badge 
+                            key={index} 
+                            variant="secondary" 
+                            className="text-xs px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300 border-0 rounded-full hover:shadow-md transition-shadow duration-200"
+                          >
                             {skill}
                           </Badge>
                         ))}
-                        {teacher.skills.length > 3 && (
-                          <Badge variant="outline" className="text-xs px-2 py-1">
-                            +{teacher.skills.length - 3}
+                        {teacher.skills.length > 4 && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs px-3 py-1.5 border-dashed border-emerald-500/30 text-emerald-600 rounded-full"
+                          >
+                            +{teacher.skills.length - 4}
                           </Badge>
                         )}
                       </div>
@@ -189,12 +218,12 @@ export default function TeachersPage() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-3 pt-4 border-t border-border/50">
                     {user && user.id !== teacher.userId && (
                       <FollowButton
                         userId={teacher.userId}
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                       />
                     )}
                     
@@ -202,12 +231,20 @@ export default function TeachersPage() {
                       variant="outline"
                       size="sm"
                       asChild
-                      className="flex-1"
+                      className="flex-1 border-emerald-500/20 hover:bg-emerald-500/5 hover:border-emerald-500/40 transition-all duration-200"
                     >
                       <Link href={`/profile/${teacher.userId}`}>
                         <BookOpen className="w-4 h-4 mr-2" />
                         View Profile
                       </Link>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="px-3 hover:bg-emerald-500/10 transition-colors duration-200"
+                    >
+                      <Mail className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -215,14 +252,14 @@ export default function TeachersPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              {searchQuery ? "No teachers found" : "No teachers available"}
-            </h3>
-            <p className="text-gray-500">
+          <div className="text-center py-16">
+            <div className="mx-auto w-32 h-32 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-full flex items-center justify-center mb-6">
+              <GraduationCap className="w-16 h-16 text-emerald-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">No teachers found</h3>
+            <p className="text-muted-foreground">
               {searchQuery 
-                ? "Try adjusting your search terms"
+                ? "Try adjusting your search terms to find teachers" 
                 : "Teachers will appear here once they complete their profiles!"
               }
             </p>
