@@ -1,15 +1,17 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import { Menu, X, MapPin } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import Image from 'next/image';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement | null>(null);
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -27,15 +29,35 @@ const Navbar = () => {
     window.open('https://www.google.com/maps/d/edit?mid=12mF2Yogrr8-amYjwTkdrk9z4pmjkGd0&usp=sharing', '_blank');
   };
 
+  // Update CSS var --nav-h with current navbar height (handles mobile menu open/close and window resize)
+  useEffect(() => {
+    const updateNavHeight = () => {
+      const h = navRef.current?.offsetHeight ?? 64; // fallback 64px
+      document.documentElement.style.setProperty('--nav-h', `${h}px`);
+    };
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+    return () => window.removeEventListener('resize', updateNavHeight);
+  }, []);
+
+  useEffect(() => {
+    // Recompute after mobile menu state changes
+    const id = requestAnimationFrame(() => {
+      const h = navRef.current?.offsetHeight ?? 64;
+      document.documentElement.style.setProperty('--nav-h', `${h}px`);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isMobileMenuOpen]);
+
   return (
-    <nav className="fixed w-full gradient-bg z-50 shadow-lg border-b border-white/10 dark:border-white/5">
+    <nav ref={navRef} className="fixed w-full gradient-bg z-50 shadow-lg border-b border-white/10 dark:border-white/5">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <div className="bg-white/90 dark:bg-white/10 backdrop-blur-sm p-2 rounded-lg shadow-md">
-              <span className="text-blue-600 dark:text-blue-400 font-bold text-xl">C</span>
+            <div className="bg-white/90 dark:bg-white/10 backdrop-blur-sm p-1 rounded-lg shadow-md">
+              <Image src="/logo.png" alt="COER Connect" width={28} height={28} className="rounded" />
             </div>
             <span className="text-white font-bold text-xl">COER Connect</span>
           </Link>

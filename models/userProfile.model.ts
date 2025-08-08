@@ -41,6 +41,14 @@ export interface IUserProfile {
     };
     isProfileComplete: boolean;
     isOnboardingComplete: boolean;
+    isPrivate?: boolean;
+    lastActiveAt?: Date;
+    // Deletion scheduling fields
+    isDeletionScheduled?: boolean;
+    deletionRequestedAt?: Date;
+    deleteAfterAt?: Date;
+    // New: reminder tracking
+    deletionReminderSent?: boolean;
 }
 
 export interface IUserProfileDocument extends IUserProfile, Document {
@@ -148,6 +156,33 @@ const userProfileSchema = new mongoose.Schema<IUserProfileDocument>({
     isOnboardingComplete: {
         type: Boolean,
         default: false
+    },
+    isPrivate: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    lastActiveAt: {
+        type: Date,
+        default: () => new Date(),
+        index: true
+    },
+    isDeletionScheduled: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    deletionRequestedAt: {
+        type: Date
+    },
+    deleteAfterAt: {
+        type: Date,
+        index: true
+    },
+    deletionReminderSent: {
+        type: Boolean,
+        default: false,
+        index: true
     }
 }, { timestamps: true });
 

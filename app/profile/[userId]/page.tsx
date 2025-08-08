@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { getUserProfile } from "@/lib/profileActions";
 import { getFollowCounts } from "@/lib/followActions";
 import { getUserPosts } from "@/lib/serveractions";
 import FollowButton from "@/components/FollowButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import RoleBadge from "@/components/RoleBadge";
 import Image from "next/image";
@@ -27,8 +28,11 @@ import {
   GraduationCap,
   Star,
   Users,
-  MessageCircle
+  MessageCircle,
+  Share2,
+  Bookmark
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProfileData {
   _id?: string;
@@ -59,10 +63,14 @@ interface ProfileData {
   isProfileComplete: boolean;
   isOnboardingComplete: boolean;
   createdAt?: string;
+  isPrivate?: boolean;
+  lastActiveAt?: string;
 }
 
 export default function UserProfilePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { user } = useUser();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +78,63 @@ export default function UserProfilePage() {
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const userId = params.userId as string;
+  const from = searchParams?.get("from");
+  const backHref = from === 'students' ? '/students' : from === 'teachers' ? '/teachers' : '/people';
+  const backLabel = from === 'students' ? 'Students' : from === 'teachers' ? 'Teachers' : 'People';
+  const [saved, setSaved] = useState(false);
+
+  // Load saved state
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const raw = localStorage.getItem('savedProfiles');
+      const arr: string[] = raw ? JSON.parse(raw) : [];
+      setSaved(arr.includes(String(userId)));
+    } catch {}
+  }, [userId]);
+
+  // Toggle save profile
+  const toggleSave = () => {
+    try {
+      const raw = localStorage.getItem('savedProfiles');
+      const arr: string[] = raw ? JSON.parse(raw) : [];
+      const id = String(userId);
+      let next: string[];
+      if (arr.includes(id)) {
+        next = arr.filter(x => x !== id);
+        setSaved(false);
+        toast.success('Removed from saved');
+      } else {
+        next = [...arr, id];
+        setSaved(true);
+        toast.success('Profile saved');
+      }
+      localStorage.setItem('savedProfiles', JSON.stringify(next));
+    } catch {}
+  };
+
+  // Share profile link
+  const handleShare = async () => {
+    if (!profile) return;
+    const url = `${window.location.origin}/profile/${profile.userId}`;
+    try {
+      // @ts-ignore
+      if (navigator.share) {
+        // @ts-ignore
+        await navigator.share({ title: `${profile.firstName} ${profile.lastName} – COER`, url });
+        return;
+      }
+    } catch {}
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Profile link copied');
+    } catch {}
+  };
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -100,6 +165,12 @@ export default function UserProfilePage() {
     }
   }, [userId]);
 
+  const isOnline = (p?: ProfileData|null) => {
+    if (!p?.lastActiveAt) return false;
+    const diff = Date.now() - new Date(p.lastActiveAt).getTime();
+    return diff < 2 * 60 * 1000;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
@@ -114,12 +185,7 @@ export default function UserProfilePage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Profile not found</h2>
           <p className="text-gray-600">This user profile does not exist or is not available.</p>
-          <Link 
-            href="/people" 
-            className="text-blue-600 hover:text-blue-800 mt-4 inline-block"
-          >
-            ← Back to People
-          </Link>
+          <Link href={backHref} className="text-blue-600 hover:text-blue-800 mt-4 inline-block">← Back to {backLabel}</Link>
         </div>
       </div>
     );
@@ -127,7 +193,7 @@ export default function UserProfilePage() {
 
   // If viewing own profile, redirect to /profile
   if (user && user.id === profile.userId) {
-    window.location.href = "/profile";
+    router.replace("/profile");
     return null;
   }
 
@@ -135,19 +201,31 @@ export default function UserProfilePage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       {/* Back Button */}
       <div className="container mx-auto px-4 pt-4">
-        <Link 
-          href="/people"
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
-        >
+        <Link href={backHref} className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4">
           <ArrowLeft className="w-4 h-4" />
-          Back to People
+          Back to {backLabel}
         </Link>
+      </div>
+
+      {/* Section Nav */}
+      <div className="sticky top-20 z-20 bg-gray-50/80 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60 border-b">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 overflow-x-auto py-2">
+            <button onClick={() => scrollTo('about')} className="px-3 py-1.5 text-sm rounded-full border hover:bg-white">About</button>
+            <button onClick={() => scrollTo('posts')} className="px-3 py-1.5 text-sm rounded-full border hover:bg-white">Posts <span className="ml-1 text-xs text-gray-500">({userPosts.length})</span></button>
+            <button onClick={() => scrollTo('experience')} className="px-3 py-1.5 text-sm rounded-full border hover:bg-white">Experience</button>
+            <button onClick={() => scrollTo('education')} className="px-3 py-1.5 text-sm rounded-full border hover:bg-white">Education</button>
+          </div>
+        </div>
       </div>
 
       {/* Header/Cover Section */}
       <div className="relative">
         {/* Cover Photo */}
-        <div className="h-64 md:h-80 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800 relative overflow-hidden">
+        <div
+          className="h-64 md:h-80 relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800"
+          style={profile.coverPhoto ? { backgroundImage: `url(${profile.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+        >
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         </div>
@@ -166,7 +244,7 @@ export default function UserProfilePage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
+              <div className={`absolute -bottom-2 -right-2 w-8 h-8 ${isOnline(profile) ? 'bg-green-500' : 'bg-gray-400'} border-4 border-white rounded-full`}></div>
             </div>
 
             {/* Basic Info */}
@@ -221,6 +299,21 @@ export default function UserProfilePage() {
                     userId={profile.userId} 
                     className="bg-white text-blue-600 hover:bg-blue-50"
                   />
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleShare} className="bg-white/90 hover:bg-white">
+                      <Share2 className="w-4 h-4 mr-2" /> Share
+                    </Button>
+                    <Button variant={saved ? "default" : "outline"} onClick={toggleSave} className="bg-white/90 hover:bg-white">
+                      <Bookmark className="w-4 h-4 mr-2" /> {saved ? 'Saved' : 'Save'}
+                    </Button>
+                    {profile.email && (
+                      <a href={`mailto:${profile.email}`}>
+                        <Button variant="outline" className="bg-white/90 hover:bg-white">
+                          <Mail className="w-4 h-4 mr-2" /> Email
+                        </Button>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -234,7 +327,7 @@ export default function UserProfilePage() {
           {/* Left Column */}
           <div className="lg:col-span-1 space-y-6">
             {/* About */}
-            <Card>
+            <Card id="about" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
@@ -249,7 +342,7 @@ export default function UserProfilePage() {
             </Card>
 
             {/* Contact Info */}
-            <Card>
+            <Card id="contact" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
               </CardHeader>
@@ -283,7 +376,7 @@ export default function UserProfilePage() {
             </Card>
 
             {/* Skills */}
-            <Card>
+            <Card id="skills" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="w-5 h-5" />
@@ -305,7 +398,7 @@ export default function UserProfilePage() {
             </Card>
 
             {/* Social Links */}
-            <Card>
+            <Card className="scroll-mt-24">
               <CardHeader>
                 <CardTitle>Social Links</CardTitle>
               </CardHeader>
@@ -348,7 +441,7 @@ export default function UserProfilePage() {
           {/* Right Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* User Posts Section */}
-            <Card>
+            <Card id="posts" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
@@ -431,7 +524,7 @@ export default function UserProfilePage() {
             </Card>
 
             {/* Experience Section */}
-            <Card>
+            <Card id="experience" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Briefcase className="w-5 h-5" />
@@ -459,7 +552,7 @@ export default function UserProfilePage() {
             </Card>
 
             {/* Education Section */}
-            <Card>
+            <Card id="education" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <GraduationCap className="w-5 h-5" />

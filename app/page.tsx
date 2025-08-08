@@ -11,6 +11,7 @@ import { UserStats } from "@/components/dynamic/UserStats";
 import { FeaturedClasses } from "@/components/dynamic/FeaturedClasses";
 import { TrendingPosts } from "@/components/dynamic/TrendingPosts";
 import { getPlatformStats, getUserStats } from "@/lib/dashboardActions";
+import StoriesBar from "@/components/StoriesBar";
 
 export default async function Home() {
   const user = await currentUser();
@@ -97,6 +98,11 @@ export default async function Home() {
             </h1>
             <p className="text-muted-foreground">Stay connected with your academic community and discover new opportunities.</p>
           </div>
+        </div>
+
+        {/* Stories */}
+        <div className="mb-6 sticky top-20 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <StoriesBar />
         </div>
 
         <div className="flex gap-6">

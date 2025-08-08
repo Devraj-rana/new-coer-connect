@@ -4,6 +4,11 @@ import { UserProfile, IUserProfile } from "@/models/userProfile.model";
 import { currentUser } from "@clerk/nextjs/server";
 import connectDB from "./db";
 import { revalidatePath } from "next/cache";
+import { Post } from "@/models/post.model";
+import { Comment } from "@/models/comment.model";
+import Follow from "@/models/follow.model";
+import { Story } from "@/models/story.model";
+import { sendEmail } from "./mailer";
 
 // Check if user profile exists and is complete
 export const checkUserProfile = async () => {
@@ -151,4 +156,128 @@ export const addExperience = async (experience: any) => {
     } catch (error: any) {
         throw new Error(error.message || "Failed to add experience");
     }
+};
+
+export const setAccountPrivacy = async (isPrivate: boolean) => {
+    try {
+        await connectDB();
+        const user = await currentUser();
+        if (!user) throw new Error("User not authenticated");
+
+        const profile = await UserProfile.findOneAndUpdate(
+            { userId: user.id },
+            { isPrivate },
+            { new: true }
+        );
+        if (!profile) throw new Error("Profile not found");
+
+        revalidatePath("/profile");
+        revalidatePath("/");
+        return JSON.parse(JSON.stringify(profile));
+    } catch (error: any) {
+        throw new Error(error.message || "Failed to update privacy");
+    }
+};
+
+export const touchLastActive = async () => {
+    try {
+        await connectDB();
+        const user = await currentUser();
+        if (!user) return;
+        await UserProfile.updateOne(
+            { userId: user.id },
+            { $set: { lastActiveAt: new Date() } }
+        );
+    } catch {
+        // ignore
+    }
+};
+
+export const scheduleAccountDeletion = async () => {
+  await connectDB();
+  const user = await currentUser();
+  if (!user) throw new Error("User not authenticated");
+  const now = new Date();
+  const after = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const profile = await UserProfile.findOneAndUpdate(
+    { userId: user.id },
+    { isDeletionScheduled: true, deletionRequestedAt: now, deleteAfterAt: after, deletionReminderSent: false },
+    { new: true }
+  );
+  if (!profile) throw new Error("Profile not found");
+  revalidatePath('/profile');
+  return JSON.parse(JSON.stringify(profile));
+};
+
+export const cancelAccountDeletion = async () => {
+  await connectDB();
+  const user = await currentUser();
+  if (!user) throw new Error("User not authenticated");
+  const profile = await UserProfile.findOneAndUpdate(
+    { userId: user.id },
+    { isDeletionScheduled: false, deletionRequestedAt: undefined, deleteAfterAt: undefined, deletionReminderSent: false },
+    { new: true }
+  );
+  if (!profile) throw new Error("Profile not found");
+  revalidatePath('/profile');
+  return JSON.parse(JSON.stringify(profile));
+};
+
+// Hard delete after grace period
+export const permanentlyDeleteUserData = async (userId?: string) => {
+  await connectDB();
+  let id = userId;
+  if (!id) {
+    const user = await currentUser();
+    if (!user) throw new Error("User not authenticated");
+    id = user.id;
+  }
+  // Remove user-generated content
+  await Promise.all([
+    Post.deleteMany({ 'user.userId': id }),
+    Comment.deleteMany({ 'user.userId': id }),
+    Follow.deleteMany({ $or: [{ followerId: id }, { followingId: id }] }),
+    Story.deleteMany({ userId: id }),
+  ]);
+  await UserProfile.deleteOne({ userId: id });
+  revalidatePath('/');
+};
+
+// Send reminder emails ~24h before deletion time
+export const sendDeletionReminders = async () => {
+  await connectDB();
+  const now = new Date();
+  const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  // Find users scheduled for deletion within the next 24h (±1h window) and not yet reminded
+  const lower = new Date(in24h.getTime() - 60 * 60 * 1000);
+  const upper = new Date(in24h.getTime() + 60 * 60 * 1000);
+  const toRemind = await UserProfile.find({
+    isDeletionScheduled: true,
+    deletionReminderSent: { $ne: true },
+    deleteAfterAt: { $gte: lower, $lte: upper },
+  }).lean();
+
+  for (const p of toRemind) {
+    try {
+      await sendEmail({
+        to: p.email,
+        subject: "Your account is scheduled for deletion in 24 hours",
+        text: `Hi ${p.firstName},\n\nYour account is scheduled to be permanently deleted on ${p.deleteAfterAt?.toLocaleString?.() || p.deleteAfterAt}. If this was a mistake, you can cancel deletion from your profile page before the deadline.\n\n— Team`,
+      });
+      await UserProfile.updateOne({ userId: p.userId }, { $set: { deletionReminderSent: true } });
+    } catch (e) {
+      console.error('Failed to send deletion reminder', p.userId, e);
+    }
+  }
+};
+
+// Cleanup job: delete any profiles past deleteAfterAt
+export const purgeScheduledDeletions = async () => {
+  await connectDB();
+  // Also attempt to send reminders each time this job runs
+  try { await sendDeletionReminders(); } catch {}
+  const due = await UserProfile.find({ isDeletionScheduled: true, deleteAfterAt: { $lte: new Date() } }).select('userId').lean();
+  for (const p of due) {
+    await permanentlyDeleteUserData(p.userId);
+  }
 };

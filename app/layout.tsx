@@ -14,6 +14,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "COER Connect",
   description: "A social platform for COER community to connect and collaborate",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +33,7 @@ export default function RootLayout({
           <ThemeProvider>
             <Navbar />
             <MainLayout>
-              <main className="w-full">
+              <main className="w-full" style={{ paddingTop: 'var(--nav-h, 64px)' }}>
                 {children}
               </main>
             </MainLayout>
