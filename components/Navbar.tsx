@@ -10,6 +10,7 @@ import Image from 'next/image';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   const pathname = usePathname();
   const navRef = useRef<HTMLElement | null>(null);
 
@@ -19,6 +20,7 @@ const Navbar = () => {
     { href: "/students", label: "Students" },
     { href: "/quiz/browse", label: "Quizzes" },
     { href: "/live-study", label: "Live Study" },
+    { href: "/messages", label: "Messages" },
     { href: "/resume", label: "Resume" },
     { href: "/profile", label: "Profile" },
   ];
@@ -49,6 +51,23 @@ const Navbar = () => {
     return () => cancelAnimationFrame(id);
   }, [isMobileMenuOpen]);
 
+  // Poll unread counts every 30s (lightweight). Could be replaced by realtime later.
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/messages/threads', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        const total = (json.threads || []).reduce((sum: number, t: any) => sum + (t.unread || 0), 0);
+        if (mounted) setUnread(total);
+      } catch {}
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   return (
     <nav ref={navRef} className="fixed w-full gradient-bg z-50 shadow-lg border-b border-white/10 dark:border-white/5">
       <div className="max-w-6xl mx-auto px-4">
@@ -74,7 +93,14 @@ const Navbar = () => {
                     : 'text-white/90 hover:text-white hover:bg-white/10'
                 }`}
               >
-                {link.label}
+                <span className="relative inline-flex items-center">
+                  {link.label}
+                  {link.href === '/messages' && unread > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center text-[10px] leading-none rounded-full bg-red-500 text-white px-1.5 py-0.5 min-w-[18px]">
+                      {unread}
+                    </span>
+                  )}
+                </span>
               </Link>
             ))}
           </div>
@@ -140,7 +166,14 @@ const Navbar = () => {
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {link.label}
+                  <span className="relative inline-flex items-center">
+                    {link.label}
+                    {link.href === '/messages' && unread > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center text-[10px] leading-none rounded-full bg-red-500 text-white px-1.5 py-0.5 min-w-[18px]">
+                        {unread}
+                      </span>
+                    )}
+                  </span>
                 </Link>
               ))}
               

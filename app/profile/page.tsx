@@ -42,6 +42,7 @@ import { Switch } from "@/components/ui/switch";
 import StoriesBar from "@/components/StoriesBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useUser as useClerkUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 // Define a Story type for client-side use
 interface StoryDoc {
@@ -94,6 +95,7 @@ interface ProfileData {
 export default function ProfilePage() {
   const { user } = useUser();
   const { user: clerkUser } = useClerkUser();
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -390,6 +392,26 @@ export default function ProfilePage() {
     }
   };
 
+  const startMessage = async () => {
+    try {
+      // Guard: ensure we have a target userId to message
+      const targetId = profile?.userId;
+      if (!targetId) return;
+      // Create or get DM thread
+      const res = await fetch('/api/messages/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId: targetId })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start chat');
+      const threadId = json.threadId;
+      router.push(`/messages?thread=${threadId}`);
+    } catch (e: any) {
+      toast.error(e.message || 'Could not open messages');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -491,6 +513,10 @@ export default function ProfilePage() {
                     userId={profile.userId} 
                     className="bg-white text-blue-600 hover:bg-blue-50"
                   />
+                  <Button onClick={startMessage} className="bg-white text-blue-600 hover:bg-blue-50 inline-flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    Message
+                  </Button>
                   <div className="flex items-center gap-3 bg-white/20 backdrop-blur px-3 py-2 rounded-lg">
                     <span className="text-sm">Private Account</span>
                     <Switch checked={!!profile.isPrivate} onCheckedChange={togglePrivacy} />

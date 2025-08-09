@@ -27,8 +27,10 @@ import {
   Grid,
   List,
   Share2,
-  Bookmark
+  Bookmark,
+  MessageCircle
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   _id: string;
@@ -51,6 +53,7 @@ interface UserData {
 // Removed debounce; we will perform live search with low-priority transitions
 export default function StudentsPage() {
   const { user } = useUser();
+  const router = useRouter();
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -178,6 +181,21 @@ export default function StudentsPage() {
       toast.success("Profile link copied");
     }
   }, []);
+
+  const startMessage = useCallback(async (targetId: string) => {
+    try {
+      const res = await fetch('/api/messages/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId: targetId })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start chat');
+      router.push(`/messages?thread=${json.threadId}`);
+    } catch (e: any) {
+      toast.error(e.message || 'Could not open messages');
+    }
+  }, [router]);
 
   const activeFiltersCount = (selectedBranch !== "all" ? 1 : 0) + (selectedYear !== "all" ? 1 : 0);
 
@@ -496,11 +514,21 @@ export default function StudentsPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4 border-t border-border/50">
                       {user && user.id !== student.userId && (
-                        <FollowButton
-                          userId={student.userId}
-                          size="sm"
-                          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 border-0 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                        />
+                        <>
+                          <FollowButton
+                            userId={student.userId}
+                            size="sm"
+                            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 border-0 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                          />
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-white text-primary hover:bg-primary/5 border border-primary/30"
+                            onClick={() => startMessage(student.userId)}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Message
+                          </Button>
+                        </>
                       )}
                       
                       <Button
@@ -561,7 +589,12 @@ export default function StudentsPage() {
 
                       <div className="flex items-center gap-2">
                         {user && user.id !== student.userId && (
-                          <FollowButton userId={student.userId} size="sm" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white" />
+                          <>
+                            <FollowButton userId={student.userId} size="sm" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white" />
+                            <Button size="sm" className="bg-white text-primary hover:bg-primary/5 border border-primary/30" onClick={() => startMessage(student.userId)}>
+                              <MessageCircle className="w-4 h-4 mr-1" /> Message
+                            </Button>
+                          </>
                         )}
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/profile/${student.userId}?from=students`}>View</Link>

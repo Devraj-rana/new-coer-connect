@@ -27,8 +27,10 @@ import {
   Grid,
   List,
   Share2,
-  Bookmark
+  Bookmark,
+  MessageCircle
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   _id: string;
@@ -50,6 +52,7 @@ interface UserData {
 
 export default function TeachersPage() {
   const { user } = useUser();
+  const router = useRouter();
   const [allTeachers, setAllTeachers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -188,6 +191,21 @@ export default function TeachersPage() {
       toast.success("Profile link copied");
     }
   }, []);
+
+  const startMessage = useCallback(async (targetId: string) => {
+    try {
+      const res = await fetch('/api/messages/threads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId: targetId })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start chat');
+      router.push(`/messages?thread=${json.threadId}`);
+    } catch (e: any) {
+      toast.error(e.message || 'Could not open messages');
+    }
+  }, [router]);
 
   const activeFiltersCount = (selectedDepartment !== "all" ? 1 : 0) + (selectedExperience !== "all" ? 1 : 0);
 
@@ -501,11 +519,21 @@ export default function TeachersPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4 border-t border-border/50">
                       {user && user.id !== teacher.userId && (
-                        <FollowButton
-                          userId={teacher.userId}
-                          size="sm"
-                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                        />
+                        <>
+                          <FollowButton
+                            userId={teacher.userId}
+                            size="sm"
+                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                          />
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-500/30"
+                            onClick={() => startMessage(teacher.userId)}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Message
+                          </Button>
+                        </>
                       )}
                       
                       <Button
@@ -578,7 +606,12 @@ export default function TeachersPage() {
 
                       <div className="flex items-center gap-2">
                         {user && user.id !== teacher.userId && (
-                          <FollowButton userId={teacher.userId} size="sm" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white" />
+                          <>
+                            <FollowButton userId={teacher.userId} size="sm" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white" />
+                            <Button size="sm" className="bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-500/30" onClick={() => startMessage(teacher.userId)}>
+                              <MessageCircle className="w-4 h-4 mr-1" /> Message
+                            </Button>
+                          </>
                         )}
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/profile/${teacher.userId}?from=teachers`}>View</Link>
